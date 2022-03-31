@@ -8,21 +8,18 @@ public class EnemyController : UdonSharpBehaviour
 {
     [HideInInspector] public NavMeshAgent agent;
     [SerializeField] private BaseState patrol;
-    //private BaseState_ currentState;
-    //private BaseState_[] availableStates;
+    private BaseState currentState;
 
     void Start()
     {
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-
-        //availableStates = GetComponents<BaseState>();
-        //currentState = new Patrol();
-        //currentState.Construct();
+        currentState = patrol;
+        currentState.Construct();
     }
 
     private void Update()
     {
-        //currentState.Transition();
+        currentState.Transition();
     }
 
     /*public void ChangeState(string stateName)
@@ -44,29 +41,4 @@ public class EnemyController : UdonSharpBehaviour
         }
         Debug.LogWarning("New state could not be found.");
     }*/
-
-    private class BaseState_
-    {
-        public virtual void Construct()
-        {
-            Debug.Log("Hello World");
-        }
-
-        public virtual void Destruct()
-        {
-
-        }
-
-        public virtual void Transition()
-        {
-
-        }
-    }
-
-    private class Patrol : BaseState_
-    {
-
-    }
-
-    private BaseState_ currentState;
 }
