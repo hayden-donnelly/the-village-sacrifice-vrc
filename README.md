@@ -1,5 +1,6 @@
 # The-Village-Sacrifice-VRC
-A remake of ![The Village Sacrifice](https://github.com/hayden-donnelly/The-Village-Sacrifice) in VR Chat with added features.
+A remake of ![The Village Sacrifice](https://github.com/hayden-donnelly/The-Village-Sacrifice) in VR Chat.
+Contains additional features such as a hub area, new levels, and easter eggs.
 
 ## Authors
 
