@@ -1,5 +1,5 @@
 # The-Village-Sacrifice-VRC
-A remake of "The Village Sacrifice" in VR Chat with added features.
+A remake of *The Village Sacrifice* in VR Chat with added features.
 
 ## Authors
 
