@@ -6,7 +6,8 @@ using VRC.Udon;
 public class BaseState : UdonSharpBehaviour
 {
     public bool unlocked;
-    protected UdonSharpBehaviour controller;
+    public int actionStateNum = 0;
+    protected EnemyController controller;
 
     protected void Start()
     {
@@ -19,6 +20,11 @@ public class BaseState : UdonSharpBehaviour
     }
 
     public virtual void Destruct()
+    {
+
+    }
+
+    public virtual void Action()
     {
 
     }
