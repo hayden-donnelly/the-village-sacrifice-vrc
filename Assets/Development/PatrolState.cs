@@ -16,7 +16,7 @@ public class PatrolState : BaseState
 
     public override void Action()
     {
-        switch(actionStateNum)
+        /*switch(actionStateNum)
         {
             case 0:
                 controller.agent.SetDestination(patrolRoute[patrolPoint].position);
@@ -38,6 +38,6 @@ public class PatrolState : BaseState
             default:
                 actionStateNum = 0;
                 break;
-        }
+        }*/
     }
 }
