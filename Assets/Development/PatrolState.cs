@@ -11,7 +11,7 @@ public class PatrolState : BaseState
 
     public override void Construct()
     {
-
+        actionStateNum = 0;
     }
 
     public override void Action()
@@ -47,7 +47,7 @@ public class PatrolState : BaseState
         }
         if (actionStateNum == 1)
         {
-            if (Vector3.Distance(transform.position, controller.agent.destination) > 2)
+            if (Vector3.Distance(transform.position, controller.agent.destination) < 2)
             {
                 actionStateNum++;
             }
@@ -63,6 +63,7 @@ public class PatrolState : BaseState
             {
                 patrolPoint = 0;
             }
+            actionStateNum = 0;
         }
     }
 }
