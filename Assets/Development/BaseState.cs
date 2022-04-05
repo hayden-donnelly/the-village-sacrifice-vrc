@@ -6,7 +6,7 @@ using VRC.Udon;
 public class BaseState : UdonSharpBehaviour
 {
     public bool unlocked;
-    public int actionStateNum = 0;
+    [HideInInspector] public int actionStateNum = 0;
     protected EnemyController controller;
 
     protected void Start()
