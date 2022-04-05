@@ -19,6 +19,7 @@ public class EnemyController : UdonSharpBehaviour
 
     private void Update()
     {
+        currentState.Action();
         currentState.Transition();
     }
 

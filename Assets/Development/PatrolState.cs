@@ -11,11 +11,12 @@ public class PatrolState : BaseState
 
     public override void Construct()
     {
-    
+
     }
 
     public override void Action()
     {
+        // goto is not supported in the current version of udonsharp
         /*switch(actionStateNum)
         {
             case 0:
@@ -39,5 +40,29 @@ public class PatrolState : BaseState
                 actionStateNum = 0;
                 break;
         }*/
+        if (actionStateNum == 0)
+        {
+            controller.agent.SetDestination(patrolRoute[patrolPoint].position);
+            actionStateNum++;
+        }
+        if (actionStateNum == 1)
+        {
+            if (Vector3.Distance(transform.position, controller.agent.destination) > 2)
+            {
+                actionStateNum++;
+            }
+            else
+            {
+                return;
+            }
+        }
+        if (actionStateNum == 2)
+        {
+            patrolPoint++;
+            if (patrolPoint >= patrolRoute.Length)
+            {
+                patrolPoint = 0;
+            }
+        }
     }
 }

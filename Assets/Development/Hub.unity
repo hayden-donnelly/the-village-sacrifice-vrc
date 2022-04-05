@@ -39,7 +39,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.1273175, g: 0.13414773, b: 0.121078864, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -609,6 +609,36 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 100884148}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &116545721
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 116545722}
+  m_Layer: 0
+  m_Name: patrol (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &116545722
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116545721}
+  m_LocalRotation: {x: -0.238664, y: -0.6761842, z: 0.2479218, w: -0.651421}
+  m_LocalPosition: {x: -34.18, y: 0.71, z: -19.33}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 21
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &126568227
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3273,6 +3303,36 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 550678511}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &564257771
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 564257772}
+  m_Layer: 0
+  m_Name: patrol (3)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &564257772
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 564257771}
+  m_LocalRotation: {x: -0.238664, y: -0.6761842, z: 0.2479218, w: -0.651421}
+  m_LocalPosition: {x: -36.13, y: 0.71, z: -27.64}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 23
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &567790917
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7105,25 +7165,36 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 3207901186abd684ea269d3e91fb3d1f, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 26e80c3b835774466a498d4b51d9c436, type: 3}
---- !u!1 &1130193750 stripped
+--- !u!1 &1136825490
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 1094421957795851142, guid: 8894fa7e4588a5c4fab98453e558847d,
-    type: 3}
-  m_PrefabInstance: {fileID: 654098959}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1130193755
-MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1130193750}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 229740497, guid: 4ecd63eff847044b68db9453ce219299, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  contentType: 1
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1136825491}
+  m_Layer: 0
+  m_Name: patrol
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1136825491
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1136825490}
+  m_LocalRotation: {x: -0.238664, y: -0.6761842, z: 0.2479218, w: -0.651421}
+  m_LocalPosition: {x: -24.21, y: 0.71, z: -4.99605}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 20
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1136853673
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8747,6 +8818,36 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1331713557}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1337298409
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1337298410}
+  m_Layer: 0
+  m_Name: patrol (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1337298410
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1337298409}
+  m_LocalRotation: {x: -0.238664, y: -0.6761842, z: 0.2479218, w: -0.651421}
+  m_LocalPosition: {x: -26.09, y: 0.71, z: -19.33}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 22
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1338860829
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9989,6 +10090,36 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1458893040}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1473107303
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1473107304}
+  m_Layer: 0
+  m_Name: patrol (4)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1473107304
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473107303}
+  m_LocalRotation: {x: -0.238664, y: -0.6761842, z: 0.2479218, w: -0.651421}
+  m_LocalPosition: {x: -27.02, y: 0.71, z: -27.64}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 24
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1477852394
 GameObject:
   m_ObjectHideFlags: 0
@@ -16559,7 +16690,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &6561194544816135633
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -16585,7 +16716,7 @@ MonoBehaviour:
   publicVariablesSerializationDataFormat: 0
 --- !u!114 &6561194544816135634
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -16633,7 +16764,12 @@ MonoBehaviour:
   _udonSharpBackingUdonBehaviour: {fileID: 6561194544816135633}
   unlocked: 0
   actionStateNum: 0
-  patrolRoute: []
+  patrolRoute:
+  - {fileID: 1136825491}
+  - {fileID: 116545722}
+  - {fileID: 1337298410}
+  - {fileID: 564257772}
+  - {fileID: 1473107304}
 --- !u!114 &6561194544816135636
 MonoBehaviour:
   m_ObjectHideFlags: 0
