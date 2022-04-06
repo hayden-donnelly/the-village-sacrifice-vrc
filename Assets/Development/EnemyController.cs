@@ -9,10 +9,12 @@ public class EnemyController : UdonSharpBehaviour
     [HideInInspector] public NavMeshAgent agent;
     [SerializeField] private BaseState patrol;
     private BaseState currentState;
+    private VRCPlayerApi localPlayer;
 
     void Start()
     {
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        localPlayer = Networking.LocalPlayer;
         currentState = patrol;
         currentState.Construct();
     }
@@ -42,4 +44,13 @@ public class EnemyController : UdonSharpBehaviour
         }
         Debug.LogWarning("New state could not be found.");
     }*/
+
+    public void PlayerDetected()
+    {
+        Vector3 playerHeadPos = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+        if (!Physics.Linecast(transform.position, playerHeadPos))
+        {
+            return true;
+        }
+    }
 }
