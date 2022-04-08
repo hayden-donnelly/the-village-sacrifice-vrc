@@ -45,12 +45,13 @@ public class EnemyController : UdonSharpBehaviour
         Debug.LogWarning("New state could not be found.");
     }*/
 
-    public void PlayerDetected()
+    public bool PlayerDetected()
     {
         Vector3 playerHeadPos = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
         if (!Physics.Linecast(transform.position, playerHeadPos))
         {
             return true;
         }
+        return false;
     }
 }
