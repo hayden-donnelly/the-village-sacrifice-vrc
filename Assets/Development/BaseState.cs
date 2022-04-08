@@ -11,6 +11,7 @@ public class BaseState : UdonSharpBehaviour
 
     protected void Start()
     {
+        actionStateNum = 0;
         controller = GetComponent<EnemyController>();
     }
 

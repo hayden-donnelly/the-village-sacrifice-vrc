@@ -9,11 +9,6 @@ public class PatrolState : BaseState
     [SerializeField] private Transform[] patrolRoute;
     private int patrolPoint = 0;
 
-    public override void Construct()
-    {
-        actionStateNum = 0;
-    }
-
     public override void Action()
     {
         // goto is not supported in the current version of udonsharp
