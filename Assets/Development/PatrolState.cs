@@ -7,58 +7,73 @@ using System.Collections;
 public class PatrolState : BaseState
 {
     [SerializeField] private Transform[] patrolRoute;
-    private int patrolPoint = 0;
+    private int patrolPointIndex = 0;
+    [SerializeField] private float waitTime = 2;
+    private float waitTimeTracker;
+
+    public override void Construct()
+    {
+        waitTimeTracker = waitTime;
+    }
+
+    public override void Destruct()
+    {
+        controller.Animator.SetInteger("State", 5);
+    }
 
     public override void Action()
     {
-        // goto is not supported in the current version of udonsharp
-        /*switch(actionStateNum)
+        // Set current patrol point.
+        if (actionStateIndex == 0)
         {
-            case 0:
-                controller.agent.SetDestination(patrolRoute[patrolPoint].position);
-                actionStateNum++;
-                goto case 1;
-            case 1:
-                if(Vector3.Distance(transform.position, controller.agent.destination) > 2)
-                {
-                    actionStateNum++;
-                }
-                goto case 2;
-            case 2:
-                patrolPoint++;
-                if(patrolPoint >= patrolRoute.Length)
-                {
-                    patrolPoint = 0;
-                }
-                goto default;
-            default:
-                actionStateNum = 0;
-                break;
-        }*/
-        if (actionStateNum == 0)
-        {
-            controller.agent.SetDestination(patrolRoute[patrolPoint].position);
-            actionStateNum++;
+            controller.agent.SetDestination(patrolRoute[patrolPointIndex].position);
+            actionStateIndex++;
         }
-        if (actionStateNum == 1)
+        // Wait until agent is close enough to specified patrol point.
+        if (actionStateIndex == 1)
         {
             if (Vector3.Distance(transform.position, controller.agent.destination) < 2)
             {
-                actionStateNum++;
+                actionStateIndex++;
             }
             else
             {
                 return;
             }
         }
-        if (actionStateNum == 2)
+        // Wait for specified length of time at patrol point.
+        if (actionStateIndex == 2)
         {
-            patrolPoint++;
-            if (patrolPoint >= patrolRoute.Length)
+            controller.Animator.SetInteger("State", 4);
+            waitTimeTracker -= Time.deltaTime;
+            if(waitTimeTracker <= 0)
             {
-                patrolPoint = 0;
+                controller.Animator.SetInteger("State", 5);
+                waitTimeTracker = waitTime;
+                actionStateIndex++;
             }
-            actionStateNum = 0;
+            else
+            {
+                return;
+            }
+        }
+        // Update patrol point index.
+        if (actionStateIndex == 3)
+        {
+            patrolPointIndex++;
+            if (patrolPointIndex >= patrolRoute.Length)
+            {
+                patrolPointIndex = 0;
+            }
+            actionStateIndex = 0;
+        }
+    }
+
+    public override void Transition()
+    {
+        if(controller.PlayerDetected())
+        {
+            controller.ChangeState(controller.Chase);
         }
     }
 }
