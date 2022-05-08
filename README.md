@@ -1,8 +1,7 @@
 # The-Village-Sacrifice-VRC
-Currently a work in progress.
 
-A remake of ![The Village Sacrifice](https://github.com/hayden-donnelly/The-Village-Sacrifice) in VR Chat.
-Contains additional features such as a hub area, new levels, and easter eggs.
+A WIP remake of ![The Village Sacrifice](https://github.com/hayden-donnelly/The-Village-Sacrifice) in VR Chat.
+Available on PC and Quest.
 
 ## Authors
 
