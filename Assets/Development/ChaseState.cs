@@ -8,6 +8,17 @@ public class ChaseState : BaseState
     // The enemy must be within this radius in order to catch the player.
     [SerializeField] private float catchPlayerRadius = 2;
 
+    public override void Construct()
+    {
+        controller.YellowAlert.SetActive(false);
+        controller.RedAlert.SetActive(true);
+    }
+
+    public override void Destruct()
+    {
+        controller.RedAlert.SetActive(false);
+    }
+
     public override void Action()
     {
         if(actionStateIndex == 0)
@@ -18,7 +29,7 @@ public class ChaseState : BaseState
         if(actionStateIndex == 1)
         {
             Vector3 playerPosition = controller.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
-            controller.agent.SetDestination(playerPosition);
+            controller.Agent.SetDestination(playerPosition);
 
             if(Vector3.Distance(playerPosition, transform.position) < catchPlayerRadius)
             {

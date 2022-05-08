@@ -6,7 +6,7 @@ using VRC.Udon;
 
 public class EnemyController : UdonSharpBehaviour
 {
-    [HideInInspector] public NavMeshAgent agent;
+    [HideInInspector] public NavMeshAgent Agent;
     public BaseState Patrol;
     public BaseState Chase;
     [SerializeField] private BaseState currentState;
@@ -14,10 +14,16 @@ public class EnemyController : UdonSharpBehaviour
     // Where the player will be sent to if they are caught by the enemy.
     public Transform LocalPlayerSpawn;
     public Animator Animator;
+    // Player will only be detected if they are within this radius.
+    [SerializeField] private float playerDetectionRadius;
+    // Yellow alert will display if player is within this radius.
+    public float PlayerAlertRadius;
+    public GameObject YellowAlert;
+    public GameObject RedAlert;
 
     void Start()
     {
-        agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        Agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
         LocalPlayer = Networking.LocalPlayer;
         currentState = Patrol;
         currentState.Construct();
@@ -40,7 +46,7 @@ public class EnemyController : UdonSharpBehaviour
     {
         Vector3 playerHeadPos = LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
         if (!Physics.Linecast(transform.position, playerHeadPos) 
-            && Vector3.Distance(transform.position, playerHeadPos) <= 8)
+            && Vector3.Distance(transform.position, playerHeadPos) <= playerDetectionRadius)
         {
             return true;
         }
