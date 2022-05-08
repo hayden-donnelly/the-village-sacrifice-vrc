@@ -18,22 +18,35 @@ public class PatrolState : BaseState
 
     public override void Destruct()
     {
+        controller.Agent.isStopped = false;
         controller.Animator.SetInteger("State", 5);
     }
 
     public override void Action()
     {
+        // Display yellow alert if player is close enough.
+        Vector3 playerHeadPos = controller.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+        if(Vector3.Distance(transform.position, playerHeadPos) <= controller.PlayerAlertRadius)
+        {
+            controller.YellowAlert.SetActive(true);
+        }
+        else
+        {
+            controller.YellowAlert.SetActive(false);
+        }
+
         // Set current patrol point.
         if (actionStateIndex == 0)
         {
-            controller.agent.SetDestination(patrolRoute[patrolPointIndex].position);
+            controller.Agent.SetDestination(patrolRoute[patrolPointIndex].position);
             actionStateIndex++;
         }
         // Wait until agent is close enough to specified patrol point.
         if (actionStateIndex == 1)
         {
-            if (Vector3.Distance(transform.position, controller.agent.destination) < 2)
+            if (Vector3.Distance(transform.position, controller.Agent.destination) < 2)
             {
+                controller.Agent.isStopped = true;
                 actionStateIndex++;
             }
             else
@@ -48,6 +61,7 @@ public class PatrolState : BaseState
             waitTimeTracker -= Time.deltaTime;
             if(waitTimeTracker <= 0)
             {
+                controller.Agent.isStopped = false;
                 controller.Animator.SetInteger("State", 5);
                 waitTimeTracker = waitTime;
                 actionStateIndex++;

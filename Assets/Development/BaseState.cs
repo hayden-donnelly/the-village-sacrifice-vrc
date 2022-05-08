@@ -18,7 +18,7 @@ public class BaseState : UdonSharpBehaviour
     // This is called whenever a state is transitioned into.
     public virtual void Construct()
     {
-
+        
     }
 
     // This is called whenever a state is transitioned out of.
