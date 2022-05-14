@@ -9,8 +9,10 @@ public class EnemyController : UdonSharpBehaviour
     [HideInInspector] public NavMeshAgent Agent;
     public BaseState Patrol;
     public BaseState Chase;
+    // Used to prevent null references to player; does nothing.
+    public BaseState NoPlayerState;
     [SerializeField] private BaseState currentState;
-    public VRCPlayerApi LocalPlayer;
+    public VRCPlayerApi LP;
     // Where the player will be sent to if they are caught by the enemy.
     public Transform LocalPlayerSpawn;
     public Animator Animator;
@@ -24,8 +26,15 @@ public class EnemyController : UdonSharpBehaviour
     void Start()
     {
         Agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        LocalPlayer = Networking.LocalPlayer;
-        currentState = Patrol;
+        LP = Networking.LocalPlayer;
+        if(LP != null)
+        {
+            currentState = Patrol;
+        }
+        else
+        {
+            currentState = NoPlayerState;
+        }
         currentState.Construct();
     }
 
@@ -44,7 +53,7 @@ public class EnemyController : UdonSharpBehaviour
 
     public bool PlayerDetected()
     {
-        Vector3 playerHeadPos = LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+        Vector3 playerHeadPos = LP.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
         if (!Physics.Linecast(transform.position, playerHeadPos) 
             && Vector3.Distance(transform.position, playerHeadPos) <= playerDetectionRadius)
         {

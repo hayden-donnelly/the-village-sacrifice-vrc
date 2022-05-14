@@ -733,21 +733,41 @@ namespace UdonSharpEditor
             UpdateSerializedProgramAssets(allBehaviours);
         }
 
-        private static bool _requiresCompile;
-        internal static void QueueScriptCompile()
-        {
-            _requiresCompile = true;
-        }
-
+        private static bool _didSceneUpgrade;
+        
         private static void OnEditorUpdate()
         {
-            if (_requiresCompile)
+            if (EditorApplication.isPlaying)
+                return;
+            
+            AddProjectDefine();
+            UpgradeAssetsIfNeeded();
+
+            if (!_didSceneUpgrade && !EditorApplication.isCompiling && !EditorApplication.isUpdating)
             {
-                UdonSharpProgramAsset.CompileAllCsPrograms();
-                _requiresCompile = false;
+                UdonSharpEditorUtility.UpgradeSceneBehaviours(GetAllUdonBehaviours());
+                _didSceneUpgrade = true;
+            }
+        }
+
+        private static bool _hasCheckedDefines;
+
+        private static void AddProjectDefine()
+        {
+            if (_hasCheckedDefines || EditorApplication.isUpdating || EditorApplication.isCompiling)
+                return;
+            
+            BuildTargetGroup buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+            string[] defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup).Split(';');
+
+            if (!defines.Contains("UDONSHARP", StringComparer.OrdinalIgnoreCase))
+            {
+                defines = defines.AddItem("UDONSHARP").ToArray();
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, string.Join(";", defines));
+                UdonSharpUtils.Log("Updated scripting defines");
             }
 
-            UpgradeAssetsIfNeeded();
+            _hasCheckedDefines = true;
         }
 
         // Rely on assembly reload to clear this since it indicates the user needs to change a script
@@ -1477,6 +1497,14 @@ namespace UdonSharpEditor
 
                 foreach (UdonSharpBehaviour proxyBehaviour in proxyBehaviours)
                 {
+                    if ((proxyBehaviour.hideFlags & HideFlags.DontSaveInEditor) != 0)
+                    {
+                        UdonSharpUtils.LogWarning("Obsolete proxy instance found from U# 0.X, cleaning up proxy.", proxyBehaviour.gameObject);
+                        
+                        Object.DestroyImmediate(proxyBehaviour);
+                        continue;
+                    }
+
                     UdonSharpProgramAsset programAsset = UdonSharpEditorUtility.GetUdonSharpProgramAsset(proxyBehaviour);
                     
                     if (programAsset.ScriptVersion < UdonSharpProgramVersion.V1SerializationUpdate)
@@ -1571,8 +1599,10 @@ namespace UdonSharpEditor
                 return true;
 
             UpgradeAssetsIfNeeded();
-            UdonSharpEditorUtility.UpgradeSceneBehaviours(GetAllUdonBehaviours());
-
+            
+            if (!EditorApplication.isCompiling && !EditorApplication.isUpdating)
+                UdonSharpEditorUtility.UpgradeSceneBehaviours(GetAllUdonBehaviours());
+            
             return false;
         }
 
