@@ -105,6 +105,21 @@ namespace UdonSharp.Compiler.Binder
             createdInvocation = null;
             return false;
         }
+        
+        private static readonly HashSet<Type> _brokenGetComponentTypes = new HashSet<Type>()
+        {
+            typeof(VRC.SDKBase.VRC_AvatarPedestal), typeof(VRC.SDK3.Components.VRCAvatarPedestal),
+            typeof(VRC.SDKBase.VRC_Pickup), typeof(VRC.SDK3.Components.VRCPickup),
+            typeof(VRC.SDKBase.VRC_PortalMarker), typeof(VRC.SDK3.Components.VRCPortalMarker),
+            //typeof(VRC.SDKBase.VRC_MirrorReflection), typeof(VRC.SDK3.Components.VRCMirrorReflection),
+            typeof(VRC.SDKBase.VRCStation),typeof(VRC.SDK3.Components.VRCStation),
+            typeof(VRC.SDK3.Video.Components.VRCUnityVideoPlayer),
+            typeof(VRC.SDK3.Video.Components.AVPro.VRCAVProVideoPlayer),
+            typeof(VRC.SDK3.Video.Components.Base.BaseVRCVideoPlayer),
+            typeof(VRC.SDK3.Components.VRCObjectPool),
+            typeof(VRC.SDK3.Components.VRCObjectSync),
+            typeof(UdonBehaviour),
+        };
 
         private static bool TryCreateGetComponentInvocation(AbstractPhaseContext context, SyntaxNode node,
             MethodSymbol symbol, BoundExpression instanceExpression, BoundExpression[] parameterExpressions,
@@ -116,33 +131,85 @@ namespace UdonSharp.Compiler.Binder
                 _getComponentNames.Contains(symbol.Name) &&
                 (symbol.ContainingType.UdonType.SystemType == typeof(Component) || symbol.ContainingType.UdonType.SystemType == typeof(GameObject)))
             {
-                var gameObjectType = context.GetTypeSymbol(typeof(GameObject));
+                TypeSymbol gameObjectType = context.GetTypeSymbol(typeof(GameObject));
+                TypeSymbol typeArgument = symbol.TypeArguments[0];
              
                 // udon-workaround: Work around the udon bug where it checks the strongbox type instead of variable type and blows up when the strong box is `object`
                 if (instanceExpression.ValueType == gameObjectType)
                 {
-                    var accessProperty = gameObjectType.GetMember<PropertySymbol>("transform", context);
+                    PropertySymbol accessProperty = gameObjectType.GetMember<PropertySymbol>("transform", context);
                     instanceExpression = BoundAccessExpression.BindAccess(context, node, accessProperty, instanceExpression);
                 }
                 else
                 {
-                    var accessProperty = context.GetTypeSymbol(typeof(Component)).GetMember<PropertySymbol>("transform", context);
+                    PropertySymbol accessProperty = context.GetTypeSymbol(typeof(Component)).GetMember<PropertySymbol>("transform", context);
                     instanceExpression = BoundAccessExpression.BindAccess(context, node, accessProperty, instanceExpression);
                 }
-                
-                if (symbol.TypeArguments[0].IsUdonSharpBehaviour)
+
+                TypeSymbol udonSharpBehaviourType = context.GetTypeSymbol(typeof(UdonSharpBehaviour));
+
+                // Exact UdonSharpBehaviour type match
+                if (typeArgument == udonSharpBehaviourType)
                 {
-                    MethodSymbol getComponentMethodShim = context.GetTypeSymbol(typeof(GetUserComponentShim))
-                        .GetMembers<MethodSymbol>(symbol.Name, context)
+                    MethodSymbol getComponentMethodShim = context.GetTypeSymbol(typeof(GetComponentShim))
+                        .GetMembers<MethodSymbol>(symbol.Name + "USB", context)
                         .First(e => e.Parameters.Length == parameterExpressions.Length + 1);
-                    
-                    getComponentMethodShim = getComponentMethodShim.ConstructGenericMethod(context, new [] { symbol.TypeArguments[0] });
                     
                     createdInvocation = new BoundStaticUserMethodInvocation(node, getComponentMethodShim,
                         new [] {instanceExpression}.Concat(parameterExpressions).ToArray());
                     
                     context.MarkSymbolReferenced(getComponentMethodShim);
 
+                    return true;
+                }
+                
+                // Subclass of UdonSharpBehaviour
+                if (typeArgument.IsUdonSharpBehaviour)
+                {
+                    // Handle inherited types
+                    if (context.CompileContext.HasInheritedUdonSharpBehaviours(typeArgument))
+                    {
+                        MethodSymbol getComponentInheritedMethodShim = context.GetTypeSymbol(typeof(GetComponentShim))
+                            .GetMembers<MethodSymbol>(symbol.Name + "I", context)
+                            .First(e => e.Parameters.Length == parameterExpressions.Length + 1);
+                        
+                        getComponentInheritedMethodShim = getComponentInheritedMethodShim.ConstructGenericMethod(context, new [] { typeArgument });
+                    
+                        createdInvocation = new BoundStaticUserMethodInvocation(node, getComponentInheritedMethodShim,
+                            new [] {instanceExpression}.Concat(parameterExpressions).ToArray());
+                    
+                        context.MarkSymbolReferenced(getComponentInheritedMethodShim);
+                        
+                        return true;
+                    }
+                    
+                    MethodSymbol getComponentMethodShim = context.GetTypeSymbol(typeof(GetComponentShim))
+                        .GetMembers<MethodSymbol>(symbol.Name, context)
+                        .First(e => e.Parameters.Length == parameterExpressions.Length + 1);
+                    
+                    getComponentMethodShim = getComponentMethodShim.ConstructGenericMethod(context, new [] { typeArgument });
+                    
+                    createdInvocation = new BoundStaticUserMethodInvocation(node, getComponentMethodShim,
+                        new [] {instanceExpression}.Concat(parameterExpressions).ToArray());
+                    
+                    context.MarkSymbolReferenced(getComponentMethodShim);
+
+                    return true;
+                }
+
+                if (_brokenGetComponentTypes.Contains(typeArgument.UdonType.SystemType))
+                {
+                    MethodSymbol getComponentInheritedMethodShim = context.GetTypeSymbol(typeof(GetComponentShim))
+                        .GetMembers<MethodSymbol>(symbol.Name + "VRC", context)
+                        .First(e => e.Parameters.Length == parameterExpressions.Length + 1);
+                        
+                    getComponentInheritedMethodShim = getComponentInheritedMethodShim.ConstructGenericMethod(context, new [] { typeArgument });
+                    
+                    createdInvocation = new BoundStaticUserMethodInvocation(node, getComponentInheritedMethodShim,
+                        new [] {instanceExpression}.Concat(parameterExpressions).ToArray());
+                    
+                    context.MarkSymbolReferenced(getComponentInheritedMethodShim);
+                        
                     return true;
                 }
                 

@@ -25,7 +25,7 @@ public class PatrolState : BaseState
     public override void Action()
     {
         // Display yellow alert if player is close enough.
-        Vector3 playerHeadPos = controller.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+        Vector3 playerHeadPos = controller.LP.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
         if(Vector3.Distance(transform.position, playerHeadPos) <= controller.PlayerAlertRadius)
         {
             controller.YellowAlert.SetActive(true);

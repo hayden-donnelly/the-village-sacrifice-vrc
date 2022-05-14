@@ -28,13 +28,13 @@ public class ChaseState : BaseState
         }
         if(actionStateIndex == 1)
         {
-            Vector3 playerPosition = controller.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+            Vector3 playerPosition = controller.LP.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
             controller.Agent.SetDestination(playerPosition);
 
             if(Vector3.Distance(playerPosition, transform.position) < catchPlayerRadius)
             {
                 Transform spawn = controller.LocalPlayerSpawn;
-                controller.LocalPlayer.TeleportTo(spawn.position, spawn.rotation);
+                controller.LP.TeleportTo(spawn.position, spawn.rotation);
             }
         }
     }

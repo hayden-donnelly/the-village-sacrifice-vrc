@@ -29,6 +29,7 @@ using UdonSharp.Serialization;
 using UdonSharpEditor;
 using UnityEditor;
 using VRC.Udon.Common.Interfaces;
+using Debug = UnityEngine.Debug;
 
 namespace UdonSharp.Compiler
 {
@@ -131,7 +132,7 @@ namespace UdonSharp.Compiler
 
             for (int i = 0; i < diagnostics.Length; ++i)
             {
-                LinePosition diagLine = compileDiagnostics[i].Location.GetLineSpan().StartLinePosition;
+                LinePosition diagLine = compileDiagnostics[i]?.Location?.GetLineSpan().StartLinePosition ?? LinePosition.Zero;
                 
                 diagnostics[i] = new UdonSharpEditorCache.CompileDiagnostic()
                 {
@@ -557,6 +558,8 @@ namespace UdonSharp.Compiler
 
             (INamedTypeSymbol, ModuleBinding)[] rootTypes = rootUdonSharpTypes.ToArray();
 
+            compilationContext.BuildUdonBehaviourInheritanceLookup(rootTypes.Select(e => e.Item1));
+            
             compilationContext.CurrentPhase = CompilationContext.CompilePhase.Bind;
 
             BindAllPrograms(rootTypes, compilationContext);
@@ -603,24 +606,25 @@ namespace UdonSharp.Compiler
                     return;
                 
                 BindContext bindContext = new BindContext(compilationContext, rootTypeSymbol.Item1, Array.Empty<Symbol>());
+                Dictionary<TypeSymbol, HashSet<Symbol>> referencedTypes;
                 
                 try
                 {
                     bindContext.Bind();
+
+                    rootTypeSymbol.Item2.binding = bindContext;
+                    referencedTypes = bindContext.GetTypeSymbol(rootTypeSymbol.Item1).CollectReferencedUnboundSymbols(bindContext, Array.Empty<Symbol>());
                 }
                 catch (CompilerException e)
                 {
-                    compilationContext.AddDiagnostic(DiagnosticSeverity.Error, bindContext.CurrentNode, e.Message);
+                    compilationContext.AddDiagnostic(DiagnosticSeverity.Error, e.Location ?? bindContext.CurrentNode?.GetLocation(), e.Message);
+                    return;
                 }
                 catch (Exception e)
                 {
                     compilationContext.AddDiagnostic(DiagnosticSeverity.Error, bindContext.CurrentNode, e.ToString());
                     return;
                 }
-
-                rootTypeSymbol.Item2.binding = bindContext;
-
-                var referencedTypes = bindContext.GetTypeSymbol(rootTypeSymbol.Item1).CollectReferencedUnboundSymbols(bindContext, Array.Empty<Symbol>());
 
                 lock (referencedSymbolsLock)
                 {
@@ -648,22 +652,23 @@ namespace UdonSharp.Compiler
                         return;
                     
                     BindContext bindContext = new BindContext(compilationContext, typeSymbol.Key.RoslynSymbol, typeSymbol.Value);
+                    Dictionary<TypeSymbol, HashSet<Symbol>> referencedSymbols;
                     
                     try
                     {
                         bindContext.Bind();
+                        referencedSymbols = typeSymbol.Key.CollectReferencedUnboundSymbols(bindContext, typeSymbol.Value);
                     }
                     catch (CompilerException e)
                     {
-                        compilationContext.AddDiagnostic(DiagnosticSeverity.Error, bindContext.CurrentNode, e.Message);
+                        compilationContext.AddDiagnostic(DiagnosticSeverity.Error, e.Location ?? bindContext.CurrentNode?.GetLocation(), e.Message);
+                        return;
                     }
                     catch (Exception e)
                     {
                         compilationContext.AddDiagnostic(DiagnosticSeverity.Error, bindContext.CurrentNode, e.ToString());
                         return;
                     }
-                    
-                    var referencedSymbols = typeSymbol.Key.CollectReferencedUnboundSymbols(bindContext, typeSymbol.Value);
 
                     lock (referencedSymbolsLock)
                     {
@@ -724,13 +729,33 @@ namespace UdonSharp.Compiler
                 moduleEmitContext.RootTable.CreateReflectionValue(CompilerConstants.UsbTypeNameHeapKey,
                     moduleEmitContext.GetTypeSymbol(SpecialType.System_String), typeName);
 
+                TypeSymbol udonSharpBehaviourType = moduleEmitContext.GetTypeSymbol(typeof(UdonSharpBehaviour));
+                
+                if (moduleEmitContext.EmitType.BaseType != udonSharpBehaviourType ||
+                    compilationContext.HasInheritedUdonSharpBehaviours(moduleEmitContext.EmitType))
+                {
+                    List<long> baseTypeArr = new List<long>();
+
+                    TypeSymbol currentType = moduleEmitContext.EmitType;
+
+                    while (currentType != udonSharpBehaviourType)
+                    {
+                        baseTypeArr.Add(UdonSharpInternalUtility.GetTypeID(TypeSymbol.GetFullTypeName(currentType.RoslynSymbol)));
+                        currentType = currentType.BaseType;
+                    }
+
+                    // Array of base types inclusive of the root type
+                    moduleEmitContext.RootTable.CreateReflectionValue(CompilerConstants.UsbTypeIDArrayHeapKey,
+                        moduleEmitContext.GetTypeSymbol(typeof(long).MakeArrayType()), baseTypeArr.ToArray());
+                }
+
                 try
                 {
                     moduleEmitContext.Emit();
                 }
                 catch (CompilerException e)
                 {
-                    compilationContext.AddDiagnostic(DiagnosticSeverity.Error, moduleEmitContext.CurrentNode, e.Message);
+                    compilationContext.AddDiagnostic(DiagnosticSeverity.Error, e.Location ?? moduleEmitContext.CurrentNode?.GetLocation(), e.Message);
                 }
                 catch (Exception e)
                 {
@@ -739,7 +764,15 @@ namespace UdonSharp.Compiler
                 }
 
                 BehaviourSyncMode syncMode = BehaviourSyncMode.Any;
-                UdonBehaviourSyncModeAttribute syncModeAttribute = moduleEmitContext.EmitType.GetAttribute<UdonBehaviourSyncModeAttribute>();
+                UdonBehaviourSyncModeAttribute syncModeAttribute = null;
+
+                TypeSymbol currentTypeSymbol = moduleEmitContext.EmitType;
+
+                while (currentTypeSymbol != udonSharpBehaviourType && syncModeAttribute == null)
+                {
+                    syncModeAttribute = currentTypeSymbol.GetAttribute<UdonBehaviourSyncModeAttribute>();
+                    currentTypeSymbol = currentTypeSymbol.BaseType;
+                }
 
                 if (syncModeAttribute != null)
                     syncMode = syncModeAttribute.behaviourSyncMode;
@@ -822,45 +855,49 @@ namespace UdonSharp.Compiler
                     UdonSharpEditorManager.ConstructorWarningsDisabled = false;
                 }
 
-                foreach (FieldInfo field in asmType.GetFields(BindingFlags.Public | BindingFlags.NonPublic |
-                                                              BindingFlags.Instance))
+                while (asmType != typeof(UdonSharpBehaviour))
                 {
-                    uint valAddress = program.SymbolTable.GetAddressFromSymbol(UdonSharpUtils.UnmanglePropertyFieldName(field.Name));
-
-                    object fieldValue = field.GetValue(component);
-
-                    if (fieldValue == null)
-                        continue;
-
-                    if (UdonSharpUtils.IsUserJaggedArray(fieldValue.GetType()))
+                    foreach (FieldInfo field in asmType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                     {
-                        Serializer serializer = Serializer.CreatePooled(fieldValue.GetType());
+                        uint valAddress = program.SymbolTable.GetAddressFromSymbol(UdonSharpUtils.UnmanglePropertyFieldName(field.Name));
 
-                        SimpleValueStorage<object[]> arrayStorage = new SimpleValueStorage<object[]>();
-                        serializer.WriteWeak(arrayStorage, fieldValue);
+                        object fieldValue = field.GetValue(component);
 
-                        program.Heap.SetHeapVariable<object[]>(valAddress, arrayStorage.Value);
-                    }
-                    else if (UdonSharpUtils.IsUserDefinedType(fieldValue.GetType()))
-                    {
-                        Serializer serializer = Serializer.CreatePooled(fieldValue.GetType());
+                        if (fieldValue == null)
+                            continue;
 
-                        IValueStorage typeStorage = (IValueStorage)Activator.CreateInstance(typeof(SimpleValueStorage<>).MakeGenericType(serializer.GetUdonStorageType()), null);
-                        serializer.WriteWeak(typeStorage, fieldValue);
+                        if (UdonSharpUtils.IsUserJaggedArray(fieldValue.GetType()))
+                        {
+                            Serializer serializer = Serializer.CreatePooled(fieldValue.GetType());
 
-                        program.Heap.SetHeapVariable(valAddress, typeStorage.Value, typeStorage.Value.GetType());
+                            SimpleValueStorage<object[]> arrayStorage = new SimpleValueStorage<object[]>();
+                            serializer.WriteWeak(arrayStorage, fieldValue);
+
+                            program.Heap.SetHeapVariable<object[]>(valAddress, arrayStorage.Value);
+                        }
+                        else if (UdonSharpUtils.IsUserDefinedType(fieldValue.GetType()))
+                        {
+                            Serializer serializer = Serializer.CreatePooled(fieldValue.GetType());
+
+                            IValueStorage typeStorage = (IValueStorage)Activator.CreateInstance(typeof(SimpleValueStorage<>).MakeGenericType(serializer.GetUdonStorageType()), null);
+                            serializer.WriteWeak(typeStorage, fieldValue);
+
+                            program.Heap.SetHeapVariable(valAddress, typeStorage.Value, typeStorage.Value.GetType());
+                        }
+                        // We set synced strings to an empty string by default
+                        else if (field.FieldType == typeof(string) &&
+                                 field.GetValue(component) == null &&
+                                 field.GetCustomAttribute<UdonSyncedAttribute>() != null)
+                        {
+                            program.Heap.SetHeapVariable(valAddress, "");
+                        }
+                        else
+                        {
+                            program.Heap.SetHeapVariable(valAddress, fieldValue, field.FieldType);
+                        }
                     }
-                    // We set synced strings to an empty string by default
-                    else if (field.FieldType == typeof(string) &&
-                             field.GetValue(component) == null &&
-                             field.GetCustomAttribute<UdonSyncedAttribute>() != null)
-                    {
-                        program.Heap.SetHeapVariable(valAddress, "");
-                    }
-                    else
-                    {
-                        program.Heap.SetHeapVariable(valAddress, fieldValue, field.FieldType);
-                    }
+                    
+                    asmType = asmType.BaseType;
                 }
 
                 rootBinding.assembly = generatedUasm;
